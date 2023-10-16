@@ -1,23 +1,24 @@
 from keras.datasets import mnist
 
 
-def load_data():
-    (train_images, train_labels), (test_images, test_labels) = mnist.load_data()
+def load_dataset():
+    (training_images, training_labels), (testing_images, testing_labels) = mnist.load_data()
 
-    print('train_images.shape =', train_images.shape)
-    print('train_labels.shape =', train_labels.shape)
-    print('test_images.shape =', test_images.shape)
-    print('test_labels.shape =', test_labels.shape)
+    print('Training images shape:', training_images.shape)
+    print('Training labels shape:', training_labels.shape)
+    print('Testing images shape:', testing_images.shape)
+    print('Testing labels shape:', testing_labels.shape)
 
-    # pre-processing
-    train_images = train_images.reshape((60000, 28 * 28))
-    train_images = train_images.astype('float32') / 255
+    # Pre-processing
+    training_images = training_images.reshape((60000, 28 * 28))
+    training_images = training_images.astype('float32') / 255
 
-    test_images = test_images.reshape((10000, 28 * 28))
-    test_images = test_images.astype('float32') / 255
+    testing_images = testing_images.reshape((10000, 28 * 28))
+    testing_images = testing_images.astype('float32') / 255
 
-    X = train_images[:7200, :]
-    y = train_labels[:7200]
-    y = y.reshape((y.shape[0], 1))
+    input_data = training_images[:7200, :]
+    output_data = training_labels[:7200]
+    output_data = output_data.reshape((output_data.shape[0], 1))
 
-    return X, y, test_images, test_labels
+    return input_data, output_data, testing_images, testing_labels
+

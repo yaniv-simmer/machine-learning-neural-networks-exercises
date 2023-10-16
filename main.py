@@ -2,7 +2,7 @@ import data
 import neural_network
 import utils
 
-X, y, test_images, test_labels = data.load_data()
+X, y, test_images, test_labels = data.load_dataset()
 
 layers = [32, 64]
 activations = [utils.sigmoid, utils.ReLU, utils.sigmoid]
