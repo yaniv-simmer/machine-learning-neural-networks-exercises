@@ -14,7 +14,7 @@ This project is a Python-based implementation of a neural network model for mach
 The main entry point of the application is main.py. This script loads the dataset, defines the neural network parameters, and trains the model.
 
 The neural_network.model class is where the neural network is defined and trained. It includes methods for training the model and predicting labels for input data.
-Requirements
+# Requirements
 
 - Python 3.11
 - Keras
