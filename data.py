@@ -10,7 +10,6 @@ def load_dataset():
     print('Testing images shape:', testing_images.shape)
     print('Testing labels shape:', testing_labels.shape)
     print('\n\n')
-    
     # Pre-processing
     training_images = training_images.reshape((60000, 28 * 28))
     training_images = training_images.astype('float32') / 255
