@@ -1,7 +1,8 @@
-from utils import init_parameters
-from typing import List, Callable
-import matplotlib.pyplot as plt
+from typing import List, Callable, Any
+
 import numpy as np
+
+from utils import init_parameters
 
 
 class model:
@@ -55,7 +56,7 @@ class model:
         activations = []
         input_data = self.input_data[index]
         activation = input_data.reshape(-1, 1)
-        
+
         for i, weights in enumerate(self.weights):
             ones = np.ones((1, 1))
             activation = np.concatenate((ones, activation), axis=0)
@@ -67,7 +68,7 @@ class model:
         activations = [a.reshape(a.shape[0], 1) for a in activations]
         return activations
 
-    def get_hot_vector(self, predicted_labels: np.ndarray, index: int) -> np.ndarray:
+    def get_hot_vector(self, predicted_labels: List[np.ndarray], index: int) -> np.ndarray:
         """
         Get the hot vector of the target label.
 
@@ -90,10 +91,10 @@ class model:
         """
         ellipsis = 1e-8
         cost = (-1) * (np.dot(hot_vector.T, np.log(np.maximum(predicted_labels, ellipsis))) +
-                          np.dot((1 - hot_vector).T, np.log(np.maximum(1 - predicted_labels, ellipsis))))
+                       np.dot((1 - hot_vector).T, np.log(np.maximum(1 - predicted_labels, ellipsis))))
         return cost
 
-    def predict(self) -> np.ndarray:
+    def predict(self) -> tuple[Any, float | int | Any]:
         """
         Predict the output of the Neural Network.
 
@@ -103,18 +104,18 @@ class model:
         predicted_labels = np.zeros((m, 1))
 
         activation = self.input_data
-        
+
         for i, weight in enumerate(self.weights):
             ones = np.ones((activation.shape[0], 1))
             activation = np.concatenate((ones, activation), axis=1)
             z = np.dot(activation, weight.T)
             activation = self.activation_functions[i](z)
-            
+
         predicted_labels = np.argmax(activation.T, axis=0)
         predicted_labels = predicted_labels.reshape(predicted_labels.shape[0], 1)
-        acurasy = np.sum(predicted_labels == self.target_labels) / m * 100
+        accuracy = np.sum(predicted_labels == self.target_labels) / m * 100
 
-        return predicted_labels, acurasy 
+        return predicted_labels, accuracy
 
     def print_network_configuration(self) -> None:
         """
@@ -152,7 +153,7 @@ class model:
         return iteration == self.training_iterations - 1 or np.mod(iteration, 10) == 0
 
     def back_propagation(self, current_delta: np.ndarray, predicted_labels: List[np.ndarray],
-                         weight_gradients: List[np.ndarray]) -> List[np.ndarray]:
+                         weight_gradients: List[np.ndarray]) -> None:
         """
         Backpropagate through the Neural Network.
 
@@ -163,11 +164,9 @@ class model:
         """
         number_of_layers = len(self.activation_functions)
         for layer in range(number_of_layers - 1, 0, -1):
-            derivative_of_activation = self.derivative_functions[layer-1](predicted_labels[layer])
+            derivative_of_activation = self.derivative_functions[layer - 1](predicted_labels[layer])
             current_delta = np.dot(self.weights[layer][:, 1:].T, current_delta) * derivative_of_activation[1:]
             weight_gradients[layer - 1] += np.dot(current_delta.reshape(-1, 1), predicted_labels[layer - 1].T)
-        
-
 
     def train_neural_network(self):
         """
@@ -176,27 +175,27 @@ class model:
         """
         self.print_network_configuration()
         cost_history = np.zeros((self.training_iterations, 1))
-        
-        for iteration  in range(self.training_iterations):
+
+        for iteration in range(self.training_iterations):
             weight_gradients = [np.zeros(weight.shape) for weight in self.weights]
             random_indices = np.random.permutation(self.number_of_samples)
             number_of_layers = len(self.activation_functions)
-            
+
             for index in random_indices:
                 cost = 0
                 predicted_labels = self.feed_forward(index)
-                
+
                 ### start Backward propagation
                 hot_vector = self.get_hot_vector(predicted_labels, index)
                 cost += self.calculate_cost(predicted_labels[-1], hot_vector, index)
-                
+
                 # first the output layer
                 output_layer_delta = (predicted_labels[-1] - hot_vector)
                 weight_gradients[-1] += np.dot(output_layer_delta, predicted_labels[-2].T)
-                
+
                 # and now all the other layers
                 self.back_propagation(output_layer_delta, predicted_labels, weight_gradients)
-                
+
             weight_gradient_array = [1 / self.number_of_samples * gradient for gradient in weight_gradients]
 
             # update weights and add regularization term
@@ -208,13 +207,10 @@ class model:
             # add regularization to cost function
             cost += (regularization_term / 2) * sum([np.sum(weight ** 2) for weight in self.weights])
             cost_history[iteration] = cost
-            
+
             if self.should_print_progress(iteration):
                 self.print_training_progress(iteration, cost)
 
         # plt.plot(cost_history)
         # plt.show()
         return cost, self.weights
-
-
-  

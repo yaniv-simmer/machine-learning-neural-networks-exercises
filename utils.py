@@ -51,7 +51,14 @@ def dReLU(Z: np.ndarray) -> np.ndarray:
 
 def init_parameters(Lin: int, Lout: int) -> np.ndarray:
     """
-    Randomly initialize the parameters of a layer with Lin incoming inputs and Lout outputs
+    Initialize the parameters for a layer in the neural network.
+    
+    The initialization is done using a method known as "Xavier Initialization".
+    This method is good for initializing the parameters because it maintains the variance of the activations
+    approximately equal across all layers, which helps to prevent the problem of vanishing/exploding gradients.
+    
+    The factor is calculated as the square root of 6 divided by the sum of the number of units in the current layer (Lin)
+    and the number of units in the next layer (Lout). This factor is then used to scale the randomly initialized parameters.
     """
     factor = np.sqrt(6 / (Lin + Lout))
     Theta = np.zeros((Lout, Lin + 1))
