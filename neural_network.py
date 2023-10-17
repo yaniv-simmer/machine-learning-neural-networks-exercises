@@ -1,4 +1,4 @@
-from utils import init_parameters, ff_predict, feed_forward
+from utils import init_parameters, ff_predict
 from typing import List, Callable
 import numpy as np
 
@@ -31,6 +31,22 @@ class model:
 
 
 
+    def feed_forward():
+        a_arr = []
+        a0 = self.input_data.reshape(-1, 1)
+        i = 0
+        for Theta in self.weights:
+            ones = np.ones((1, 1))
+            a0 = np.concatenate((ones, a0), axis=0)
+            z = np.dot(Theta, a0)
+
+            a0 = self.activation_functions[i](z)
+            a_arr.append(a0)
+            i += 1
+        a_arr.insert(0, X)
+        a_arr[:-1] = [np.insert(a_, 0, 1) for a_ in a_arr[:-1]]  ## add 1 bias
+        a_arr = [a_.reshape(a_.shape[0], 1) for a_ in a_arr]
+        return a_arr
 
 
     def train(self):
@@ -51,7 +67,7 @@ class model:
             for index in random_indices:
 
                 J = 0
-                activations = feed_forward(self.weights, self.input_data[index], self.activation_functions)
+                activations = self.feed_forward()
                 ### start Backward propagation
 
                 # Assigning 1 to the binary digit according to the class (label) of the input
@@ -79,17 +95,44 @@ class model:
             if iteration == self.training_iterations - 1 or np.mod(iteration, 10) == 0:
                 print('Cost function cost = ', cost[0], 'in iteration',
                       iteration , 'with regularization_coefficient = ', self.regularization_coefficient)
-                iteration , accuracy = ff_predict(self.weights, self.activation_functions, self.input_data, self.target_labels)
+                iteration , accuracy = self.ff_predict()
                 # accuracy = np.sum(predicted_labels==target_labels) / m *100
                 print('Net accuracy for training set = ', accuracy)
 
         return cost, self.weights
 
-    def predict(self, input_data: np.ndarray) -> np.ndarray:
+
+
+
+    def ff_predict():
         """
-        Predict the labels of the input data.
-        :param input_data: The input data.
-        :return: The predicted labels.
+        ff_predict employs forward propagation on a 3 layer networks and
+        determines the labels of  the inputs
+        Input arguments
+        Theta1 - matrix of parameters (weights)  between the input and the first hidden layer
+        Theta2 - matrix of parameters (weights)  between the hidden layer and the output layer (or
+            another hidden layer)
+        X - input matrix
+        y - input labels
+        Output arguments:
+        p - the predicted labels of the inputs
+        Usage: p = ff_predict(Theta1, Theta2, X)
         """
-        predicted_labels, _ = ff_predict(self.weights, self.activation_functions, self.input_data)
-        return predicted_labels
+
+        m = self.input_data.shape[0]
+        p = np.zeros((m, 1))
+
+        a = X
+        i = 0
+        for Theta in self.weights:
+            ones = np.ones((a.shape[0], 1))
+            a = np.concatenate((ones, a), axis=1)
+            z = np.dot(a, Theta.T)
+            a = self.activation_functions[i](z)
+            i += 1
+        p = np.argmax(a.T, axis=0)
+        p = p.reshape(p.shape[0], 1)
+        detectp = np.sum(p == y) / m * 100
+
+        return p, detectp
+
