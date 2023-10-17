@@ -1,9 +1,10 @@
-from utils import init_parameters
-from typing import List, Callable
-import matplotlib.pyplot as plt
+from typing import List, Callable, Any
 import numpy as np
-
 from utils import init_parameters
+
+'''
+This file contains the implementation of a Neural Network model.
+'''
 
 
 class model:
@@ -23,7 +24,7 @@ class model:
         """
         output_dimensions = np.unique(target_labels).size
         self.layer_dimensions = [input_data.shape[1]] + hidden_layer_dimensions + [output_dimensions]
-        self.weights = [init_parameters(input_dimension, output_dimension) for input_dimension, output_dimension in zip(self.layer_dimensions, self.layer_dimensions[1:])]
+        self.weights = self.init_weights()
         self.input_data = input_data
         self.target_labels = target_labels
         self.activation_functions = activation_functions
@@ -33,6 +34,22 @@ class model:
         self.regularization_coefficient = regularization_coefficient
         self.number_of_samples = input_data.shape[0]
 
+    def init_weights(self) -> List[np.ndarray]:
+        """
+        Initialize the weights of the Neural Network using "Xavier Initialization".
+        Xavier Initialization is a method of weight initialization that keeps the variance of the activations
+        approximately equal across all layers, which helps to prevent the problem of vanishing/exploding gradients.
+
+        :return: A list of the weights of the Neural Network.
+        """
+        weights_list = []
+        for input_layer_dimension, output_layer_dimension in zip(self.layer_dimensions, self.layer_dimensions[1:]):
+            weights_list.append(init_parameters(input_layer_dimension, output_layer_dimension))
+        return weights_list
+
+    def feed_forward(self, index: int) -> List[np.ndarray]:
+        """
+        Feed forward through the Neural Network.
 
         :param index: The index of the input data to feed forward.
         :return: A list of the activations of each layer.
@@ -174,9 +191,9 @@ class model:
                 cost += self.calculate_cost(predicted_labels[-1], hot_vector, index)
 
                 # first the output layer
-                current_delta = (predicted_labels[-1] - hot_vector)
-                weight_gradients[-1] += np.dot(current_delta, predicted_labels[-2].T)
-                
+                output_layer_delta = (predicted_labels[-1] - hot_vector)
+                weight_gradients[-1] += np.dot(output_layer_delta, predicted_labels[-2].T)
+
                 # and now all the other layers
                 self.back_propagation(output_layer_delta, predicted_labels, weight_gradients)
 
