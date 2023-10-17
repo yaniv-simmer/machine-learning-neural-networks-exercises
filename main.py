@@ -12,5 +12,5 @@ alpha = 0.5
 Lambda = 1
 NN = neural_network.model(layers, X, y, activations,
                           dirvatives, epochs, alpha, Lambda)
-NN.train()
+NN.train_neural_network()
 # score = NN.evaluate(test_images, test_labels)
