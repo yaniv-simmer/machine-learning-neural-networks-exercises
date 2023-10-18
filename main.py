@@ -2,15 +2,15 @@ import data
 import neural_network
 import utils
 
-X, y, test_images, test_labels = data.load_dataset()
+input_data, target_labels, test_images, test_labels = data.load_dataset()
 
-layers = [32]
-activations = [utils.ReLU, utils.sigmoid]
-dirvatives = [utils.dReLU, utils.d_sigmoid]
-epochs = 60
-alpha = 0.5
-Lambda = 1
-NN = neural_network.model(layers, X, y, activations,
-                          dirvatives, epochs, alpha, Lambda)
+hidden_layer_dimensions = [32]
+activation_functions = [utils.ReLU, utils.sigmoid]
+derivative_functions = [utils.dReLU, utils.d_sigmoid]
+training_iterations = 60
+learning_rate = 0.5
+regularization_coefficient = 1
+NN = neural_network.model(hidden_layer_dimensions, input_data, target_labels, activation_functions,
+                          derivative_functions, training_iterations, learning_rate, regularization_coefficient)
 NN.train_neural_network()
 # score = NN.evaluate(test_images, test_labels)
