@@ -20,7 +20,7 @@ def main():
     derivative_functions_lst = [[d_ReLU, d_sigmoid],
                                 [d_ReLU, d_ReLU, d_sigmoid],
                                 [d_ReLU, d_sigmoid, d_sigmoid]]
-    training_iterations = 2
+    training_iterations = 100
     learning_rate = [0.1, 0.15, 0.2]
     regularization_coefficient_lst = [1, 0.1, 1]
 
