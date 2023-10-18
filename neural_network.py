@@ -1,4 +1,5 @@
 from typing import List, Callable, Any
+from matplotlib import pyplot as plt
 import numpy as np
 from utils import init_parameters
 
@@ -33,6 +34,7 @@ class model:
         self.learning_rate = learning_rate
         self.regularization_coefficient = regularization_coefficient
         self.number_of_samples = input_data.shape[0]
+        self.cost_history = np.zeros((self.training_iterations, 1))
 
     def init_weights(self) -> List[np.ndarray]:
         """
@@ -65,7 +67,7 @@ class model:
             activation = self.activation_functions[i](z)
             activations.append(activation)
         activations.insert(0, input_data)
-        activations[:-1] = [np.insert(a, 0, 1) for a in activations[:-1]]  ## add 1 bias
+        activations[:-1] = [np.insert(a, 0, 1) for a in activations[:-1]]  # add 1 bias
         activations = [a.reshape(a.shape[0], 1) for a in activations]
         return activations
 
@@ -81,30 +83,30 @@ class model:
         binary_target[self.target_labels[index]] = 1
         return binary_target
 
-    def calculate_cost(self, predicted_labels: np.ndarray, hot_vector: np.ndarray, index: int) -> float:
+    @staticmethod
+    def calculate_cost(predicted_labels: np.ndarray, hot_vector: np.ndarray) -> float:
         """
         Calculate the cost of the Neural Network.
 
         :param predicted_labels: The predicted labels of the input data.
         :param hot_vector: The hot vector of the target label.
-        :param index: The index of the input data.
         :return: The cost of the Neural Network.
         """
-        ellipsis = 1e-8
-        cost = (-1) * (np.dot(hot_vector.T, np.log(np.maximum(predicted_labels, ellipsis))) +
-                       np.dot((1 - hot_vector).T, np.log(np.maximum(1 - predicted_labels, ellipsis))))
+        epsilon = 1e-8
+        cost = (-1) * (np.dot(hot_vector.T, np.log(np.maximum(predicted_labels, epsilon))) +
+                       np.dot((1 - hot_vector).T, np.log(np.maximum(1 - predicted_labels, epsilon))))
         return cost
 
-    def predict(self) -> tuple[Any, float | int | Any]:
+    def predict_output(self, input_data: np.ndarray, target_labels: np.ndarray) -> tuple[Any, float | int | Any]:
         """
-        Predict the output of the Neural Network.
+        Predict the output of the Neural Network and calculate the accuracy.
 
         :return: The predicted output of the Neural Network.
+        :return: The accuracy of the Neural Network.
         """
-        m = self.number_of_samples
-        predicted_labels = np.zeros((m, 1))
-
-        activation = self.input_data
+        m = input_data.shape[0]
+        np.zeros((m, 1))
+        activation = input_data
 
         for i, weight in enumerate(self.weights):
             ones = np.ones((activation.shape[0], 1))
@@ -114,7 +116,7 @@ class model:
 
         predicted_labels = np.argmax(activation.T, axis=0)
         predicted_labels = predicted_labels.reshape(predicted_labels.shape[0], 1)
-        accuracy = np.sum(predicted_labels == self.target_labels) / m * 100
+        accuracy = (np.sum(predicted_labels == target_labels) / m) * 100
 
         return predicted_labels, accuracy
 
@@ -122,33 +124,30 @@ class model:
         """
         Print the configuration of the Neural Network.
         """
-        print('\n\n-------------starting NN training-------------\n')
-        print('Neural Network Configuration:')
-        print('Number of training samples = ', self.number_of_samples)
+        print('Neural Network Configuration:\n')
+        print('Number of training samples      = ', self.number_of_samples)
         print('Number of neurons in each layer = ', self.layer_dimensions)
-        print('Activation functions = ', [function.__name__ for function in self.activation_functions])
-        print('Number of training iterations = ', self.training_iterations)
-        print('Learning rate = ', self.learning_rate)
-        print('Regularization coefficient = ', self.regularization_coefficient)
-        print('Number of parameters = ', sum([weight.size for weight in self.weights]))
-        print('\n-- printing training progress: \n')
+        print('Activation functions            = ', [function.__name__ for function in self.activation_functions])
+        print('Number of training iterations   = ', self.training_iterations)
+        print('Learning rate                   = ', self.learning_rate)
+        print('Regularization coefficient      = ', self.regularization_coefficient)
+        print('Number of parameters            = ', sum([weight.size for weight in self.weights]))
+        print('\n\n')
 
     def print_training_progress(self, iteration: int, cost: float) -> None:
         """
         Print the training progress of the Neural Network.
 
-        :param iteration: The current iteration of the Neural Network.
+        :param iteration: The current iteration of the Neural Network training.
         :param cost: The cost of the Neural Network.
         """
+
         print('Training iteration:', iteration, 'Cost:', cost[0])
-        _, accuracy = self.predict()
+        _, accuracy = self.predict_output(self.input_data, self.target_labels)
         print('Training accuracy:', accuracy, '\n')
 
     def should_print_progress(self, iteration: int) -> bool:
         """
-        Determine whether to print the progress of the Neural Network.
-
-        :param iteration: The current iteration of the Neural Network.
         :return: True if the iteration is the last iteration or a multiple of 10, False otherwise.
         """
         return iteration == self.training_iterations - 1 or np.mod(iteration, 10) == 0
@@ -161,7 +160,7 @@ class model:
         :param current_delta: The current delta of the Neural Network.
         :param predicted_labels: The predicted labels of the input data.
         :param weight_gradients: The weight gradients of the Neural Network.
-        :return: The weight gradients of the Neural Network.
+        :return: The weight gradients of the Neural Network (no return value needed).
         """
         number_of_layers = len(self.activation_functions)
         for layer in range(number_of_layers - 1, 0, -1):
@@ -174,29 +173,29 @@ class model:
         Train the Neural Network.
         :return: The cost and the weights of the Neural Network.
         """
+        print('\n\n-------------starting NN training-------------\n')
         self.print_network_configuration()
-        cost_history = np.zeros((self.training_iterations, 1))
 
+        print('\n--- printing training progress: \n')
         for iteration in range(self.training_iterations):
             weight_gradients = [np.zeros(weight.shape) for weight in self.weights]
             random_indices = np.random.permutation(self.number_of_samples)
-            number_of_layers = len(self.activation_functions)
 
             for index in random_indices:
                 cost = 0
-                predicted_labels = self.feed_forward(index)
+                activations_arr = self.feed_forward(index)
 
-                ### start Backward propagation
-                hot_vector = self.get_hot_vector(predicted_labels, index)
-                cost += self.calculate_cost(predicted_labels[-1], hot_vector, index)
+                ### start Backward propagation ###
+                hot_vector = self.get_hot_vector(activations_arr, index)
+                predicted_output = activations_arr[-1]
+                cost += self.calculate_cost(predicted_output, hot_vector)
 
                 # first the output layer
-                output_layer_delta = (predicted_labels[-1] - hot_vector)
-                weight_gradients[-1] += np.dot(output_layer_delta, predicted_labels[-2].T)
+                output_layer_delta = (activations_arr[-1] - hot_vector)
+                weight_gradients[-1] += np.dot(output_layer_delta, activations_arr[-2].T)
 
                 # and now all the other layers
-                self.back_propagation(output_layer_delta, predicted_labels, weight_gradients)
-
+                self.back_propagation(output_layer_delta, activations_arr, weight_gradients)
             weight_gradient_array = [1 / self.number_of_samples * gradient for gradient in weight_gradients]
 
             # update weights and add regularization term
@@ -207,11 +206,20 @@ class model:
 
             # add regularization to cost function
             cost += (regularization_term / 2) * sum([np.sum(weight ** 2) for weight in self.weights])
-            cost_history[iteration] = cost
+            self.cost_history[iteration] = cost
 
             if self.should_print_progress(iteration):
                 self.print_training_progress(iteration, cost)
 
-        # plt.plot(cost_history)
-        # plt.show()
+        # plot_loss()
         return cost, self.weights
+
+    def plot_loss(self) -> None:
+        """
+        Plot the loss of the Neural Network.
+        """
+        plt.plot(self.cost_history)
+        plt.xlabel('Training Iterations')
+        plt.ylabel('Cost')
+        plt.title('Cost vs Training Iterations')
+        plt.show()

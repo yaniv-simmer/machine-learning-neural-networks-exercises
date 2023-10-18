@@ -41,7 +41,7 @@ def ReLU(Z: np.ndarray) -> np.ndarray:
     return A
 
 
-def dReLU(Z: np.ndarray) -> np.ndarray:
+def d_ReLU(Z: np.ndarray) -> np.ndarray:
     """
     Compute dReLU(Z)
     """
@@ -57,10 +57,11 @@ def init_parameters(Lin: int, Lout: int) -> np.ndarray:
     This method is good for initializing the parameters because it maintains the variance of the activations
     approximately equal across all layers, which helps to prevent the problem of vanishing/exploding gradients.
 
-    The factor is calculated as the square root of 6 divided by the sum of the number of units in the current layer (Lin)
-    and the number of units in the next layer (Lout). This factor is then used to scale the randomly initialized parameters.
+    The factor is calculated as the square root of 6 divided by the sum of the number of units in the current layer
+    (Lin) and the number of units in the next layer (Lout). This factor is then used to scale the randomly initialized
+    parameters.
     """
     factor = np.sqrt(6 / (Lin + Lout))
-    Theta = np.zeros((Lout, Lin + 1))
+    np.zeros((Lout, Lin + 1))
     Theta = 2 * factor * (np.random.rand(Lout, Lin + 1) - 0.5)
     return Theta
