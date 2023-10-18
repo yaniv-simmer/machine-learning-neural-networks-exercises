@@ -2,6 +2,10 @@ from keras.datasets import mnist
 
 
 def load_dataset():
+    """
+    Loads the MNIST dataset and returns the training and testing data.
+    """
+
     print('\n\n------------- Loading MNIST dataset -------------\n')
 
     (training_images, training_labels), (testing_images, testing_labels) = mnist.load_data()
@@ -18,9 +22,12 @@ def load_dataset():
     testing_images = testing_images.reshape((10000, 28 * 28))
     testing_images = testing_images.astype('float32') / 255
 
+    testing_images = testing_images[:4000, :]
+    testing_labels = testing_labels[:4000]
+    testing_labels = testing_labels.reshape((testing_labels.shape[0], 1))
+
     input_data = training_images[:7200, :]
     output_data = training_labels[:7200]
     output_data = output_data.reshape((output_data.shape[0], 1))
 
     return input_data, output_data, testing_images, testing_labels
-
